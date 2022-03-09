@@ -1,30 +1,33 @@
 <!DOCTYPE HTML>
 <html> 
-  <head> 
-    <title>AJAX Assignment</title> 
-    <meta charset="utf-8" /> 
-    <meta content='width=device-width; height=device-height; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;' name='viewport' />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="license" content="
-        Copyright 2013 Abram Hindle
-        
-        Licensed under the Apache License, Version 2.0 (the "License");
-        you may not use this file except in compliance with the License.
-        You may obtain a copy of the License at
-        
-            http://www.apache.org/licenses/LICENSE-2.0
-        
-        Unless required by applicable law or agreed to in writing, software
-        distributed under the License is distributed on an "AS IS" BASIS,
-        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-        See the License for the specific language governing permissions and
-        limitations under the License.
-    "/>
-    <script src="json2.js"></script>
-  </head> 
+    <head> 
+        <title>AJAX Assignment</title> 
+        <meta charset="utf-8" /> 
+        <meta content='width=device-width; height=device-height; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;' name='viewport' />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="license" content="
+            Copyright 2013 Abram Hindle
+            Copyright 2022 Lidia Ataupillco Ramos
+            
+            Licensed under the Apache License, Version 2.0 (the "License");
+            you may not use this file except in compliance with the License.
+            You may obtain a copy of the License at
+            
+                http://www.apache.org/licenses/LICENSE-2.0
+            
+            Unless required by applicable law or agreed to in writing, software
+            distributed under the License is distributed on an "AS IS" BASIS,
+            WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+            See the License for the specific language governing permissions and
+            limitations under the License.
+        "/>
+        <script src="json2.js"></script>
+    </head> 
   <body bgcolor="black" height="100%" width="100%"> 
     <canvas id="c" width="100%" height="100%" style="-webkit-tap-highlight-color: transparent;"></canvas> 
     <script>
+
+const hostname = "http://127.0.0.1:5000";
 var canvas = document.getElementById('c');
 var host = window.location.host;
 var context = canvas.getContext("2d");
@@ -33,13 +36,17 @@ var H = canvas.height = window.innerHeight-50;
 
 
 function sendJSONXMLHTTPRequest(url, objects, callback) {
+    const method = "POST";
+
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
         if (xhr.readyState==4) {
             try {
                 if (xhr.status==200) {
                     //XXX: parse some JSON from the request!
+                    let resultJson = JSON.parse(xhr.response);
                     //XXX: Pass the data to the callback!
+                    callback(resultJson)
                 }
             } 
             catch(e) {
@@ -47,9 +54,17 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
             }
         }
     };
+
     //XXX: POST to a URL
+    xhr.open(method, url, true);
+
     //XXX: set the mimetype and the accept headers!
     // Remember to use application/json !
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.setRequestHeader("Accept", "application/json");
+
+    let jsonVal = JSON.stringify(objects);
+    xhr.send(jsonVal);
 }
 
 
@@ -138,6 +153,8 @@ function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just  modified!
+    sendJSONXMLHTTPRequest(hostname, world, prepEntity);
+    drawFrame()
 
 }
 
@@ -256,12 +273,38 @@ mouse.mouseuppers.push(function(x,y,clicked,e) {
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
     addEntityWithoutName({'x':x,'y':y,'colour':'green',
-                          'radius':10});
+                        'radius':10});
 });
 
+function getJSONXMLHTTPRequest(url) {
+    let getXhr = new XMLHttpRequest();
+    let response = null;
+
+    getXhr.onreadystatechange = function() {
+        if (getXhr.readyState == 4) {
+            try {
+                if (getXhr.status == 200) {
+                    response = JSON.parse(getXhr.response);
+                }
+            } catch (err) {
+                alert('Error: ' + e.name);
+            }
+        }
+    };
+
+    getXhr.open("GET", url + "/world", true);
+    getXhr.setRequestHeader("Content-Type", "application/json");
+    getXhr.setRequestHeader("Accept", "application/json");
+
+    getXhr.send();
+
+    return response;
+}
 
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
+    const response = getJSONXMLHTTPRequest(`${hostname}/world`);
+    world = response;
     drawFrame();
 }
 

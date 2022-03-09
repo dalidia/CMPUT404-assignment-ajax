@@ -38,11 +38,11 @@
 
 ** Requirements
    
-   - [ ] Implement the AJAX Javascript parts in the HTML file static/index.htm
-   - [ ] Implement the webservice root
-   - [ ] Implement the webservice /entity/entity-name POST/PUT/GET API
-   - [ ] Implement the webservice /world API
-   - [ ] Implement the webservice /clear API
+   - [x] Implement the AJAX Javascript parts in the HTML file static/index.htm
+   - [x] Implement the webservice root
+   - [x] Implement the webservice /entity/entity-name POST/PUT/GET API
+   - [x] Implement the webservice /world API
+   - [x] Implement the webservice /clear API
    - [ ] Use JSON or XML to communicate (no plain text!)
    - [ ] The webservice can pass all the tests in freetests.py
    - [ ] The webservice can pass all the tests in not-free-tests.py (you only have part of this one, I reserve the right to add tests)

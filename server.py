@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 # Copyright 2013 Abram Hindle
+# Copyright 2022 Lidia Ataupillco Ramos
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,8 +22,7 @@
 #     pip install flask
 
 
-import flask
-from flask import Flask, request
+from flask import Flask, request, redirect, jsonify, Response
 import json
 app = Flask(__name__)
 app.debug = True
@@ -63,7 +63,7 @@ myWorld = World()
 # this should come with flask but whatever, it's not my project.
 def flask_post_json():
     '''Ah the joys of frameworks! They do so much work for you
-       that they get in the way of sane operation!'''
+        that they get in the way of sane operation!'''
     if (request.json != None):
         return request.json
     elif (request.data != None and request.data.decode("utf8") != u''):
@@ -74,27 +74,47 @@ def flask_post_json():
 @app.route("/")
 def hello():
     '''Return something coherent here.. perhaps redirect to /static/index.html '''
-    return None
+    return redirect("static/index.html")
 
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     '''update the entities via this interface'''
-    return None
+
+    try:
+        data = flask_post_json()
+        if request.method == 'POST':
+            myWorld.set(entity, data)
+        elif request.method == 'PUT':
+            for key in data:
+                myWorld.update(entity, key, data[key])
+        
+        return jsonify(myWorld.get(entity))
+    except Exception as e:
+        return Response(status=500, response=json.dumps({'Error': str(e)}))
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
     '''you should probably return the world here'''
-    return None
+    return jsonify(myWorld.world())
 
 @app.route("/entity/<entity>")    
 def get_entity(entity):
     '''This is the GET version of the entity interface, return a representation of the entity'''
-    return None
+    try:
+        rep_entity = myWorld.get(entity)
+        return jsonify(rep_entity)
+    except Exception as e:
+        return Response(status=500, response=json.dumps({'Error': str(e)}))
+
 
 @app.route("/clear", methods=['POST','GET'])
 def clear():
     '''Clear the world out!'''
-    return None
+    if request.method == 'POST':
+        myWorld.clear()
+        return jsonify(myWorld.world())
+    
+    return jsonify(myWorld.world())
 
 if __name__ == "__main__":
     app.run()

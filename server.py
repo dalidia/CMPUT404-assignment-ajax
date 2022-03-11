@@ -22,8 +22,7 @@
 #     pip install flask
 
 
-import flask
-from flask import Flask, request, url_for, redirect, jsonify, Response
+from flask import Flask, request, redirect, jsonify, Response
 import json
 app = Flask(__name__)
 app.debug = True
@@ -114,7 +113,6 @@ def clear():
     if request.method == 'POST':
         myWorld.clear()
         return jsonify(myWorld.world())
-
     
     return jsonify(myWorld.world())
 

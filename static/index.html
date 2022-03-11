@@ -32,7 +32,7 @@ var host = window.location.host;
 var context = canvas.getContext("2d");
 var W = canvas.width  = window.innerWidth-6;
 var H = canvas.height = window.innerHeight-50;
-var DidUpdate = false;
+var DidUpdate = true;
 
 function sendJSONXMLHTTPRequest(url, objects, callback) {
     const method = "POST";
@@ -77,8 +77,13 @@ function drawCircle(context,entity) {
         var x = entity["x"];
         var y = entity["y"];
         //moveTo(x,y);
+        // fillStyle = entity["colour"];
+        setLineDash([5, 7]);
         fillStyle = entity["colour"];
         strokeStyle = fillStyle;
+        shadowColor = 'yellow';
+        shadowBlur = 20;
+
         arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
         stroke();                                
     }
@@ -153,7 +158,7 @@ function addEntity(entity, data) {
     DidUpdate = true;
     // drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just  modified!
-    sendJSONXMLHTTPRequest(`http://${host}/entity/${entity}`, entity, prepEntity);
+    sendJSONXMLHTTPRequest(`http://${host}/entity/${entity}`, data, prepEntity);
     drawNextFrame(); // (but should we?)
     drawFrame();
 
@@ -265,16 +270,16 @@ mouse = (function() {
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'#09b8e8'});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'#9c4471'});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
-                        'radius':10});
+    addEntityWithoutName({'x':x,'y':y,'colour':'#7a9299',
+                        'radius':15});
 });
 
 function getJSONXMLHTTPRequest(url) {
@@ -302,18 +307,20 @@ function getJSONXMLHTTPRequest(url) {
     return response;
 }
 
-function checkForUpdate() {
-    if (DidUpdate) {
-        const response = getJSONXMLHTTPRequest(`http://${host}/world`);
-        world = response;
-        drawNextFrame();
-    }
-    DidUpdate = false;
-}
+// function checkForUpdate() {
+//     if (DidUpdate) {
+//         const response = getJSONXMLHTTPRequest(`http://${host}/world`);
+//         world = response;
+//         drawNextFrame();
+//     }
+//     DidUpdate = false;
+// }
 
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
-    checkForUpdate();
+    const response = getJSONXMLHTTPRequest(`http://${host}/world`);
+    world = response;
+    drawNextFrame();
     drawFrame();
 }
 

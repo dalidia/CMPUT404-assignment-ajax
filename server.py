@@ -23,7 +23,7 @@
 
 
 import flask
-from flask import Flask, request, url_for, redirect, jsonify
+from flask import Flask, request, url_for, redirect, jsonify, Response
 import json
 app = Flask(__name__)
 app.debug = True
@@ -75,7 +75,7 @@ def flask_post_json():
 @app.route("/")
 def hello():
     '''Return something coherent here.. perhaps redirect to /static/index.html '''
-    return redirect(url_for("static", filename="index.html"))
+    return redirect("static/index.html")
 
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
@@ -84,37 +84,39 @@ def update(entity):
     try:
         data = flask_post_json()
         if request.method == 'POST':
-            myWorld.set(entity, data['data'])
+            myWorld.set(entity, data)
         elif request.method == 'PUT':
-            myWorld.update(entity, data['key'], data['value'])
-        return jsonify(data=entity)
+            for key in data:
+                myWorld.update(entity, key, data[key])
+        
+        return jsonify(myWorld.get(entity))
     except Exception as e:
-        return {'Error': 'invalid request', 'status': 400}
+        return Response(status=500, response=json.dumps({'Error': str(e)}))
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
     '''you should probably return the world here'''
-    return jsonify(data=myWorld.world())
+    return jsonify(myWorld.world())
 
 @app.route("/entity/<entity>")    
 def get_entity(entity):
     '''This is the GET version of the entity interface, return a representation of the entity'''
     try:
-        entity = myWorld.get(entity)
-        return jsonify(data=entity)
+        rep_entity = myWorld.get(entity)
+        return jsonify(rep_entity)
     except Exception as e:
-        return {
-            'Error': str(e),
-            'status': 500
-        }
+        return Response(status=500, response=json.dumps({'Error': str(e)}))
+
 
 @app.route("/clear", methods=['POST','GET'])
 def clear():
     '''Clear the world out!'''
     if request.method == 'POST':
         myWorld.clear()
+        return jsonify(myWorld.world())
+
     
-    return jsonify(data=myWorld.world())
+    return jsonify(myWorld.world())
 
 if __name__ == "__main__":
     app.run()
